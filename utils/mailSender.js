@@ -1,27 +1,55 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const mailSender = async (email, title, body) => {
-  try {
+// const mailSender = async (email, title, body) => {
+//   try {
+//     let transporter = nodemailer.createTransport({
+//       host: process.env.MAIL_HOST,
+//       auth: {
+//         user: process.env.MAIL_USER,
+//         pass: process.env.MAIL_PASS,
+//       },
+//     });
+
+//     let info = await transporter.sendMail({
+//       from: "StudyWell || CodeChan - by UtuChann ",
+//       to: `${email}`,
+//       subject: `${title}`,
+//       html: `${body}`,
+//     });
+//     console.log("message sent: ", info);
+//     return info;
+//   } catch (error) {
+//     console.log(error.message);
+//   }
+// };
+
+// module.exports = mailSender;
+
+const mailSender = async(email,title,body) =>{
+  try{
     let transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
-
+      host:process.env.MAIL_HOST,
+      auth:{
+        user:process.env.MAIL_USER,
+        pass:process.env.MAIL_PASS,
+      }
+    })
+    
     let info = await transporter.sendMail({
-      from: "StudyWell || CodeChan - by UtuChann ",
-      to: `${email}`,
-      subject: `${title}`,
-      html: `${body}`,
-    });
-    console.log("message sent: ", info);
+      from:"StudyWell || CodeChan - by UtuChann",
+      to:`${email}`,
+      subject:`${title}`,
+      html:`${body}`
+    })
+    console.log(info);
     return info;
-  } catch (error) {
-    console.log(error.message);
   }
-};
+  catch(error){
+    console.log("somthing went wrong while sending email")
+  }
 
-module.exports = mailSender;
+
+}
+
+module.exports = mailSender
