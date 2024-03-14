@@ -14,7 +14,7 @@ const courseSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true
-    },
+    }, 
     whatYouWillLearn:{
         type:String,
         trim:true,
