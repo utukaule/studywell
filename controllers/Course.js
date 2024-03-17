@@ -1,97 +1,135 @@
 const Course = require('../models/Course')
-const Tag = require("../models/Tags")
-const Uesr = require("../models/User")
-
+const Categories = require("../models/categories")
+const User = require("../models/User")
+const { uploadImageToCloudinary } = require("../utils/imageUploader")
 exports.course = async (req, res) => {
     try {
 
         // fetch data from DB
-        const { courseName, //mendetory
-            courseDescription, //mendetory 
-            instructor, //mendetory
-            whatYouWillLearn,//mendetory
-            courseContent, //mendetory
-            ratingAndReviews,
-            price, //mendetory
-            thumbnail, //mendetory
-            tag, //mendetory
-            studentEnrolled
+        const { courseName, //*
+            courseDescription, //* 
+            whatYouWillLearn,//*
+            price, //*
+            categories, //*
         } = req.body;
 
+        // get thumbnail
+        const thumbnail = req.files.thumbnailImage;
+
         // validation for above medetory fields
-        if (!courseName || courseDescription || instructor || whatYouWillLearn || courseContent || price || thumbnail || tag) {
+        if (!courseName || !courseDescription || !whatYouWillLearn || !price || !thumbnail || !categories) {
             return res.status(400).json({
                 success: false,
-                message: "Please fillup all required field"
+                message: "All fields are required"
             })
         }
 
 
 
-        // valide the user as a instructor or not
-        const userVerification = await User.findOne({ email });
-        if (!userVerification) {
+        // check instructor
+        const userId = req.user.id;
+        const instructorDetails = await User.find(userId);
+        console.log("instructor Details: ", instructorDetails)
+
+        // validate instructor
+        if (!instructorDetails) {
             return res.status(400).json({
                 success: false,
-                message: "User not found please create account as a instructor",
+                message: 'Instructor detail not found'
             })
         }
 
-        // validation for instructor (like instuctor is new or not)
-        const userCategory = await Course.find({ accountType })
-
-        // valide the role
-        if (userCategory.accountType !== "Instructor") {
-            return res.status(400).json({
+        // categories validation
+        const tagDetails = await Categories.findById(categories);
+        if (!tagDetails) {
+            return res.status(404).json({
                 success: false,
-                message: "You cant create course because you are not instructor, To became instructor signup as a instructor",
+                message: 'categories details not found'
             })
         }
 
-        // find all students
-        const allStudents = await Course.find([studentEnrolled])
-        if(allStudents.length ==0){
-            res.json({
-                success:true,
-                message:"No student enrolled this course "
-            })
-        }
-        else if(allStudents.length > 0){
-            res.json({
-                success:true,
-                message:`${allStudents.length} students enrolled this course`
-            })
-        }
-        
+
+        // upload imageon cloudinary
+        const thumbnailImage = await uploadImageToCloudinary(thumbnail, process.env.FOLDER_NAME)
+
+
         // create entry in DB with this course
-
         const newCourse = await Course.create({
-            courseName: courseName, //mendetory
-            courseDescription: courseDescription, //mendetory 
-            instructor: instructor, //mendetory
-            whatYouWillLearn: whatYouWillLearn,//mendetory
-            courseContent: courseContent, //mendetory
-            ratingAndReviews: ratingAndReviews,
-            price: price, //mendetory
-            thumbnail: thumbnail, //mendetory
-            tag: tag, //mendetory
-            studentEnrolled: allStudents
+            courseName, //*
+            courseDescription, //* 
+            instructor: instructorDetails._id, //*
+            whatYouWillLearn,//*
+            price: price, //*
+            thumbnail: thumbnailImage._id, //*
+            categories: tagDetails.secure_url, //*
         })
+
+
+        // Now add new course to the user schema of instructor
+        await User.findByIdAndUpdate(
+            { _id: instructorDetails._id },
+            {
+                $push: {
+                    course: newCourse._id
+                }
+            },
+            { new: true }
+        )
+
+        // update categories ka schema
+        // todo: HW
+        await Categories.findByIdAndUpdate(
+            {id:tagDetails._id},
+            {
+                $push:{
+                    categories:tagDetails._id
+                }
+            },
+            {new:true}
+            )
 
 
         // return response
         return res.status(200).json({
             success: true,
-            message: "Creating course field is done now upload section and subsection"
+            message: "Course created successfully"
         })
 
     } catch (error) {
-        res.status(400).json({
+        console.log(error)
+        return res.status(500).json({
             success: false,
             message: "Somthing went wrong while uploading course data"
         })
     }
 
+}
 
 
+// showAllCourses handler function
+exports.showAllCourses = async (req, res) => {
+    try {
+        const allCourse = await Course.find({}, {
+            courseName: true,
+            price: true,
+            thumbnail: true,
+            instructor: true,
+            ratingAndReviews: true,
+            studentEnrolled: true
+        }).populate("instructor").exec()
+
+        return res.status(200).json({
+            success: true,
+            message: "all courses data fetched successfully",
+            data: allCourse
+        })
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            message: "Cannot fetch course data",
+            error: error.message
+        })
+    }
 }
