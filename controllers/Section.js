@@ -90,8 +90,15 @@ exports.deleteSection = async (req, res) => {
     try {
         // get id
         const { sectionId } = req.body
+        
         // use findId and delete
+        await Section.findByIdAndDelete(sectionId)
+        
         // response
+        return res.status(200).json({
+            succes:true,
+            message:"section deleted successfully"
+        })
     }
     catch (error) {
         console.log(error);
