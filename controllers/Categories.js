@@ -40,7 +40,10 @@ exports.createTag = async (req, res) => {
 exports.showAllTags = async (req, res) => {
   try {
     // getting all tags usign find method
-    const allTags = await Categories.find({}, { name: true, description: true });
+    const allTags = await Categories.find(
+      {},
+      { name: true, description: true }
+    );
     res.status(200).json({
       success: true,
       message: "All tage returned successfully",
@@ -52,4 +55,39 @@ exports.showAllTags = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+// categoryPage Details
+
+exports.categoryPageDetails = async (req, res) => {
+  try {
+    // get category
+    const { categooryId } = req.body;
+
+    // get courses for specified category id
+    const selectedCategory = await Category.findById(courseId)
+      .populate("courses")
+      .exec();
+
+    // validation
+    if (!selectedCategory) { 
+      return res.status(404).json({
+        success: false,
+        message: "data not found",
+      });
+    }
+
+
+    // get courses for diff category
+    const differentCategories = await Category.fing({
+      _id: { $ne: categooryId },
+    }).populate('courses').exec();
+
+    // get top selling courses
+     
+
+    // return reponse
+  
+  
+  } catch (error) {}
 };
