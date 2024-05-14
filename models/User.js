@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
     enum: ["Admin", "Student", "Instructor"],
     required: true,
   },
+  active: {
+    type: Boolean,
+    defalut: true,
+  },
+  approved: {
+    type: Boolean,
+    defalut: true,
+  },
   additionalDetails: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -50,7 +58,7 @@ const userSchema = new mongoose.Schema({
   courseProgress: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CourseProgress",
+      ref: "courseProgress",
     },
   ],
 });

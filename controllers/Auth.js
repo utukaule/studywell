@@ -88,7 +88,6 @@ exports.signup = async (req, res) => {
       !password ||
       !confirmPassword ||
       !otp ||
-      !contactNumber
     ) {
       return res.status(403).json({
         success: false,
@@ -113,7 +112,7 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // find most recent opt stored for the user
+    // find most recent otp stored for the user
     const recentOtp = await OTP.find({ email })
       .sort({ createdAt: -1 }) //in this -1 means that sorting in descending order so the most recent OTP document (based on its createdAt timestamp) will be the first one in the result set
       .limit(1);
@@ -135,6 +134,7 @@ exports.signup = async (req, res) => {
 
     // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+   
     // create entry in DB
     const profileDetails = await Profile.create({
       gender: null,
@@ -143,7 +143,7 @@ exports.signup = async (req, res) => {
       contactNumber: null,
     });
     const user = await User.create({
-      firstNama,
+      firstName,
       lastName,
       email,
       contactNumber,
